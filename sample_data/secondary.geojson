@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "name": "overlap_report_secondary_sample",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "C",
+        "zone_name": "Sample Zone"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [114.0005, -2.9995],
+          [114.0025, -2.9995],
+          [114.0025, -2.9975],
+          [114.0005, -2.9975],
+          [114.0005, -2.9995]
+        ]]
+      }
+    }
+  ]
+}

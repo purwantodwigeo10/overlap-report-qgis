@@ -1,0 +1,40 @@
+{
+  "type": "FeatureCollection",
+  "name": "overlap_report_primary_sample",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "parcel_id": "A",
+        "owner": "Sample One"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [114.0000, -3.0000],
+          [114.0020, -3.0000],
+          [114.0020, -2.9980],
+          [114.0000, -2.9980],
+          [114.0000, -3.0000]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "parcel_id": "B",
+        "owner": "Sample Two"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [114.0010, -2.9990],
+          [114.0030, -2.9990],
+          [114.0030, -2.9970],
+          [114.0010, -2.9970],
+          [114.0010, -2.9990]
+        ]]
+      }
+    }
+  ]
+}
