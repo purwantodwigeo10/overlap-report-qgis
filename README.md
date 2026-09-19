@@ -79,6 +79,6 @@ This plugin is free software licensed under the GNU General Public License,
 version 3 or any later version. See `LICENSE` for the complete terms.
 
 - Homepage: <https://aktivasi.ruangspasial.my.id/help/overlap-report-qgis>
-- Support: <support@ruangspasial.my.id>
+- Support: <ruangspasial@gmail.com>
 - Source code: <https://github.com/purwantodwigeo10/overlap-report-qgis>
 - Issue tracker: <https://github.com/purwantodwigeo10/overlap-report-qgis/issues>
