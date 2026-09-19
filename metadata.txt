@@ -7,7 +7,7 @@ about=Overlap Report provides Self Overlap and Pair Overlap analyses in one focu
     The plugin has no third-party Python dependencies and contains no binaries. Two successful analysis runs are available in trial mode. Continued use requires an internet connection and a RUANG SPASIAL License Hub activation. License validation sends the product identifiers, the entered activation code, and a one-way SHA-256 Device ID to aktivasi.ruangspasial.my.id over HTTPS. The original operating-system identifier is not transmitted.
 version=26.1.0
 author=Dwi Purwanto (RuangSpasial)
-email=support@ruangspasial.my.id
+email=ruangspasial@gmail.com
 changelog=26.1.0
     - Migrated all License Hub and help traffic to verified HTTPS.
     - Added cross-platform Device ID handling while preserving existing Windows IDs.
