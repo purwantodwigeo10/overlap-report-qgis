@@ -346,7 +346,7 @@ class OverlapReportDialog(QDialog):
         for lyr in QgsProject.instance().mapLayers().values():
             is_polygon = (
                 lyr.type() == QgsMapLayerType.VectorLayer
-                and lyr.geometryType() == QgsWkbTypes.PolygonGeometry
+                and lyr.geometryType() == QgsWkbTypes.GeometryType.PolygonGeometry
             )
             if is_polygon:
                 self.cmb_layer1.addItem(lyr.name(), lyr.id())
@@ -363,7 +363,7 @@ class OverlapReportDialog(QDialog):
         layer = QgsVectorLayer(path, os.path.basename(path), 'ogr')
         if (
                 layer.isValid()
-                and layer.geometryType() == QgsWkbTypes.PolygonGeometry):
+                and layer.geometryType() == QgsWkbTypes.GeometryType.PolygonGeometry):
             return layer
         return None
 
@@ -626,7 +626,7 @@ class OverlapReportDialog(QDialog):
         calculator.setEllipsoid(ellipsoid)
         measured = calculator.measureArea(geometry)
         return float(calculator.convertAreaMeasurement(
-            measured, QgsUnitTypes.AreaSquareMeters))
+            measured, QgsUnitTypes.AreaUnit.AreaSquareMeters))
 
     def _write_main_output(self, layer1, out_main):
         fields = QgsFields()
@@ -722,7 +722,7 @@ class OverlapReportDialog(QDialog):
         options.driverName = 'ESRI Shapefile'
         options.fileEncoding = 'UTF-8'
         writer = QgsVectorFileWriter.create(
-            out_overlap, fields, QgsWkbTypes.MultiPolygon, layer1.crs(),
+            out_overlap, fields, QgsWkbTypes.Type.MultiPolygon, layer1.crs(),
             QgsProject.instance().transformContext(), options)
         if writer.hasError() != QgsVectorFileWriter.WriterError.NoError:
             raise RuntimeError(
@@ -778,7 +778,7 @@ class OverlapReportDialog(QDialog):
                 if inter is None or inter.isEmpty():
                     continue
                 if QgsWkbTypes.geometryType(
-                        inter.wkbType()) != QgsWkbTypes.PolygonGeometry:
+                        inter.wkbType()) != QgsWkbTypes.GeometryType.PolygonGeometry:
                     continue
                 if QgsWkbTypes.isSingleType(inter.wkbType()):
                     inter.convertToMultiType()

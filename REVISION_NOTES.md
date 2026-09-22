@@ -4,6 +4,8 @@ Version retained at the author's request.
 
 ## Changes
 
+- Scope QGIS geometry and area enums: GeometryType.PolygonGeometry, Type.MultiPolygon and AreaUnit.AreaSquareMeters (five scanner findings).
+
 - Use scoped Qt enums, exec(), Qt-compatible QAction imports and explicit Qt5/Qt6 field types.
 - Use bounded License Hub HTTPS requests, manual redirect policy, HTTP/network error checks and an already-finished reply guard.
 - Give explicit inactive/revoked/expired/pending states priority over conflicting success flags.
