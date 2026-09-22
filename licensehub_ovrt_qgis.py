@@ -1,3 +1,4 @@
+from .license_response import has_denial
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: GPL-3.0-or-later
 """RUANG SPASIAL License Hub integration for Overlap Report.
@@ -267,47 +268,9 @@ class LicenseManager(object):
         return value if isinstance(value, dict) else None
 
     def _post_json_qgis(self, url, payload, timeout):
-        request = QNetworkRequest(QUrl(url))
-        request.setHeader(
-            QNetworkRequest.ContentTypeHeader,
-            "application/json")
-        request.setRawHeader(
-            QByteArray(b"Accept"),
-            QByteArray(b"application/json"))
-        request.setRawHeader(
-            QByteArray(b"User-Agent"),
-            QByteArray(
-                ("OverlapReport/%s QGIS" %
-                 PLUGIN_VERSION).encode("ascii")),
-        )
-
-        reply = QgsNetworkAccessManager.instance().post(
-            request,
-            QByteArray(json.dumps(payload).encode("utf-8")),
-        )
-        event_loop = QEventLoop()
-        timer = QTimer()
-        timer.setSingleShot(True)
-        reply.finished.connect(event_loop.quit)
-        timer.timeout.connect(event_loop.quit)
-        timer.start(max(1, int(timeout * 1000)))
-        event_loop.exec_()
-
-        if not reply.isFinished():
-            reply.abort()
-            reply.deleteLater()
-            return None, "License Hub did not respond before the timeout."
-
-        raw = bytes(reply.readAll()).decode("utf-8", errors="replace")
-        error_code = reply.error()
-        error_text = reply.errorString()
-        reply.deleteLater()
-        parsed = self._decode_response(raw)
-        if parsed is not None:
-            return parsed, None
-        if error_code != QNetworkReply.NoError:
-            return None, "License Hub request failed: %s" % error_text
-        return None, "License Hub returned an invalid response."
+        from .license_network import request_json
+        return request_json("POST", url, payload, timeout,
+                            user_agent="QGISPlugin/%s" % PLUGIN_VERSION)
 
     def _post_json(self, url, payload, timeout=10):
         if not self._secure_url(url):
@@ -321,6 +284,8 @@ class LicenseManager(object):
 
     @staticmethod
     def _status_from_response(data):
+        if has_denial(data):
+            return False, "License is inactive or pending."
         if not isinstance(data, dict):
             return None, "Invalid License Hub response."
 
