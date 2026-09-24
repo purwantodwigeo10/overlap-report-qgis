@@ -1,6 +1,3 @@
-from .run_guard import single_run
-from .output_safety import ensure_new_output
-from .qt_compat import FIELD_STRING, FIELD_LONG, FIELD_DOUBLE
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: GPL-3.0-or-later
 import os
@@ -18,6 +15,7 @@ from qgis.core import (
     QgsGeometry, QgsMapLayerType, QgsProject, QgsSpatialIndex, QgsUnitTypes,
     QgsVectorFileWriter, QgsVectorLayer, QgsWkbTypes
 )
+from qgis.PyQt.QtCore import QVariant
 from .licensehub_ovrt_qgis import (
     FIXED_CODE,
     LicenseManager,
@@ -36,9 +34,9 @@ class ActivationDialog(QDialog):
         self.setWindowTitle('License Activation')
         window_flags = (
             self.windowFlags()
-            | Qt.WindowType.WindowMinimizeButtonHint
-            | Qt.WindowType.WindowMaximizeButtonHint
-            | Qt.WindowType.WindowCloseButtonHint
+            | Qt.WindowMinimizeButtonHint
+            | Qt.WindowMaximizeButtonHint
+            | Qt.WindowCloseButtonHint
         )
         self.setWindowFlags(window_flags)
         self.setSizeGripEnabled(True)
@@ -165,9 +163,9 @@ class OverlapReportDialog(QDialog):
         self.setWindowTitle('Overlap Report')
         window_flags = (
             self.windowFlags()
-            | Qt.WindowType.WindowMinimizeButtonHint
-            | Qt.WindowType.WindowMaximizeButtonHint
-            | Qt.WindowType.WindowCloseButtonHint
+            | Qt.WindowMinimizeButtonHint
+            | Qt.WindowMaximizeButtonHint
+            | Qt.WindowCloseButtonHint
         )
         self.setWindowFlags(window_flags)
         self.setSizeGripEnabled(True)
@@ -188,16 +186,16 @@ class OverlapReportDialog(QDialog):
                 pix.scaled(
                     160,
                     160,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation))
+                    Qt.KeepAspectRatio,
+                    Qt.SmoothTransformation))
         self.lbl_logo.setMinimumWidth(180)
-        self.lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_logo.setAlignment(Qt.AlignCenter)
         hero_layout.addWidget(self.lbl_logo)
         center = QVBoxLayout()
         self.lbl_title = QLabel(
             "<span style='font-size:24px; font-weight:700;'>"
             "Overlap Report</span>")
-        self.lbl_title.setTextFormat(Qt.TextFormat.RichText)
+        self.lbl_title.setTextFormat(Qt.RichText)
         self.lbl_desc = QLabel(
             'Overlap Report helps identify overlaps and intersections between '
             'polygon layers quickly and accurately, improving the efficiency '
@@ -209,14 +207,14 @@ class OverlapReportDialog(QDialog):
         hero_layout.addLayout(center, 1)
         right = QVBoxLayout()
         self.lbl_activation = QLabel()
-        self.lbl_activation.setTextFormat(Qt.TextFormat.RichText)
+        self.lbl_activation.setTextFormat(Qt.RichText)
         self.btn_manage = QPushButton('Manage Activation')
         self.btn_manage.clicked.connect(self.show_activation_dialog)
         self.btn_help_main = QPushButton('User Guide and Activation')
         self.btn_help_main.clicked.connect(self.open_help_page)
-        right.addWidget(self.lbl_activation, 0, Qt.AlignmentFlag.AlignRight)
-        right.addWidget(self.btn_manage, 0, Qt.AlignmentFlag.AlignRight)
-        right.addWidget(self.btn_help_main, 0, Qt.AlignmentFlag.AlignRight)
+        right.addWidget(self.lbl_activation, 0, Qt.AlignRight)
+        right.addWidget(self.btn_manage, 0, Qt.AlignRight)
+        right.addWidget(self.btn_help_main, 0, Qt.AlignRight)
         right.addStretch(1)
         hero_layout.addLayout(right)
         main.addWidget(hero)
@@ -314,7 +312,7 @@ class OverlapReportDialog(QDialog):
 
     def show_activation_dialog(self):
         dlg = ActivationDialog(self.lm, self)
-        dlg.exec()
+        dlg.exec_()
         self.refresh_license_status()
 
     def refresh_license_status(self):
@@ -346,7 +344,7 @@ class OverlapReportDialog(QDialog):
         for lyr in QgsProject.instance().mapLayers().values():
             is_polygon = (
                 lyr.type() == QgsMapLayerType.VectorLayer
-                and lyr.geometryType() == QgsWkbTypes.GeometryType.PolygonGeometry
+                and lyr.geometryType() == QgsWkbTypes.PolygonGeometry
             )
             if is_polygon:
                 self.cmb_layer1.addItem(lyr.name(), lyr.id())
@@ -363,7 +361,7 @@ class OverlapReportDialog(QDialog):
         layer = QgsVectorLayer(path, os.path.basename(path), 'ogr')
         if (
                 layer.isValid()
-                and layer.geometryType() == QgsWkbTypes.GeometryType.PolygonGeometry):
+                and layer.geometryType() == QgsWkbTypes.PolygonGeometry):
             return layer
         return None
 
@@ -442,8 +440,8 @@ class OverlapReportDialog(QDialog):
             name = f.name()
             self.cmb_target1.addItem(name)
             item = QListWidgetItem(name)
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-            item.setCheckState(Qt.CheckState.Unchecked)
+            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+            item.setCheckState(Qt.Unchecked)
             self.lst_select_fields.addItem(item)
 
     def on_layer2_changed(self):
@@ -464,11 +462,11 @@ class OverlapReportDialog(QDialog):
 
     def select_all_fields(self):
         for i in range(self.lst_select_fields.count()):
-            self.lst_select_fields.item(i).setCheckState(Qt.CheckState.Checked)
+            self.lst_select_fields.item(i).setCheckState(Qt.Checked)
 
     def unselect_all_fields(self):
         for i in range(self.lst_select_fields.count()):
-            self.lst_select_fields.item(i).setCheckState(Qt.CheckState.Unchecked)
+            self.lst_select_fields.item(i).setCheckState(Qt.Unchecked)
 
     def choose_output(self):
         path, _ = QFileDialog.getSaveFileName(
@@ -478,7 +476,6 @@ class OverlapReportDialog(QDialog):
                 path += '.shp'
             self.txt_output.setText(path)
 
-    @single_run
     def run_tool(self):
         can_run, msg = self.lm.can_run()
         if not can_run:
@@ -515,7 +512,7 @@ class OverlapReportDialog(QDialog):
         names = []
         for i in range(self.lst_select_fields.count()):
             item = self.lst_select_fields.item(i)
-            if item.checkState() == Qt.CheckState.Checked:
+            if item.checkState() == Qt.Checked:
                 names.append(item.text())
         return names
 
@@ -563,8 +560,6 @@ class OverlapReportDialog(QDialog):
         target2 = self.cmb_target2.currentText().strip()
         selected_fields = self._field_names_from_checks()
 
-        ensure_new_output(out_main)
-        ensure_new_output(out_overlap)
         self._delete_shapefile(out_main)
         self._delete_shapefile(out_overlap)
 
@@ -612,8 +607,8 @@ class OverlapReportDialog(QDialog):
         prepared = QgsGeometry(geometry)
         if not prepared.isGeosValid():
             prepared = prepared.makeValid()
-        if prepared is None or prepared.isEmpty() or not prepared.isGeosValid():
-            raise RuntimeError("A source geometry could not be repaired. Fix it before analysis.")
+        if prepared is None or prepared.isEmpty():
+            return None
         return prepared
 
     @staticmethod
@@ -626,7 +621,7 @@ class OverlapReportDialog(QDialog):
         calculator.setEllipsoid(ellipsoid)
         measured = calculator.measureArea(geometry)
         return float(calculator.convertAreaMeasurement(
-            measured, QgsUnitTypes.AreaUnit.AreaSquareMeters))
+            measured, QgsUnitTypes.AreaSquareMeters))
 
     def _write_main_output(self, layer1, out_main):
         fields = QgsFields()
@@ -636,18 +631,18 @@ class OverlapReportDialog(QDialog):
         report_fields = {
             'source_id': self._unique_field_name(fields, 'OVRT_ID'),
         }
-        fields.append(QgsField(report_fields['source_id'], FIELD_LONG))
+        fields.append(QgsField(report_fields['source_id'], QVariant.LongLong))
         report_fields['text'] = self._unique_field_name(fields, 'OVERLAP')
         fields.append(
             QgsField(
                 report_fields['text'],
-                FIELD_STRING,
+                QVariant.String,
                 len=254))
         report_fields['area'] = self._unique_field_name(fields, 'AREA_M2')
         fields.append(
             QgsField(
                 report_fields['area'],
-                FIELD_DOUBLE,
+                QVariant.Double,
                 len=20,
                 prec=3))
         report_fields['percentage'] = self._unique_field_name(
@@ -655,17 +650,19 @@ class OverlapReportDialog(QDialog):
         fields.append(
             QgsField(
                 report_fields['percentage'],
-                FIELD_DOUBLE,
+                QVariant.Double,
                 len=20,
                 prec=6))
 
-        options = QgsVectorFileWriter.SaveVectorOptions()
-        options.driverName = 'ESRI Shapefile'
-        options.fileEncoding = 'UTF-8'
-        writer = QgsVectorFileWriter.create(
-            out_main, fields, layer1.wkbType(), layer1.crs(),
-            QgsProject.instance().transformContext(), options)
-        if writer.hasError() != QgsVectorFileWriter.WriterError.NoError:
+        writer = QgsVectorFileWriter(
+            out_main,
+            'UTF-8',
+            fields,
+            layer1.wkbType(),
+            layer1.crs(),
+            'ESRI Shapefile'
+        )
+        if writer.hasError() != QgsVectorFileWriter.NoError:
             raise RuntimeError(
                 'Failed to create the output report shapefile: %s' %
                 writer.errorMessage())
@@ -702,10 +699,10 @@ class OverlapReportDialog(QDialog):
             target2,
             selected_fields):
         fields = QgsFields()
-        fields.append(QgsField('SRC_ID_A', FIELD_LONG))
-        fields.append(QgsField('SRC_ID_B', FIELD_LONG))
-        fields.append(QgsField('AREA_M2', FIELD_DOUBLE, len=20, prec=3))
-        fields.append(QgsField('OVERLAP', FIELD_STRING, len=254))
+        fields.append(QgsField('SRC_ID_A', QVariant.LongLong))
+        fields.append(QgsField('SRC_ID_B', QVariant.LongLong))
+        fields.append(QgsField('AREA_M2', QVariant.Double, len=20, prec=3))
+        fields.append(QgsField('OVERLAP', QVariant.String, len=254))
         attribute_fields = []
         for name in selected_fields:
             source_index = layer1.fields().indexOf(name)
@@ -718,13 +715,14 @@ class OverlapReportDialog(QDialog):
             fields.append(output_field)
             attribute_fields.append(name)
 
-        options = QgsVectorFileWriter.SaveVectorOptions()
-        options.driverName = 'ESRI Shapefile'
-        options.fileEncoding = 'UTF-8'
-        writer = QgsVectorFileWriter.create(
-            out_overlap, fields, QgsWkbTypes.Type.MultiPolygon, layer1.crs(),
-            QgsProject.instance().transformContext(), options)
-        if writer.hasError() != QgsVectorFileWriter.WriterError.NoError:
+        writer = QgsVectorFileWriter(
+            out_overlap,
+            'UTF-8',
+            fields,
+            QgsWkbTypes.MultiPolygon,
+            layer1.crs(),
+            'ESRI Shapefile')
+        if writer.hasError() != QgsVectorFileWriter.NoError:
             raise RuntimeError(
                 'Failed to create the overlap-detail shapefile: %s' %
                 writer.errorMessage())
@@ -778,7 +776,7 @@ class OverlapReportDialog(QDialog):
                 if inter is None or inter.isEmpty():
                     continue
                 if QgsWkbTypes.geometryType(
-                        inter.wkbType()) != QgsWkbTypes.GeometryType.PolygonGeometry:
+                        inter.wkbType()) != QgsWkbTypes.PolygonGeometry:
                     continue
                 if QgsWkbTypes.isSingleType(inter.wkbType()):
                     inter.convertToMultiType()
@@ -840,25 +838,21 @@ class OverlapReportDialog(QDialog):
             raise RuntimeError(
                 'Failed to open the generated shapefiles for updating.')
         totals = {}
-        coverage = {}
         texts = {}
         idx_a = overlap_layer.fields().indexOf('SRC_ID_A')
         idx_b = overlap_layer.fields().indexOf('SRC_ID_B')
+        idx_area = overlap_layer.fields().indexOf('AREA_M2')
         idx_text = overlap_layer.fields().indexOf('OVERLAP')
         for f in overlap_layer.getFeatures():
             aid = int(f[idx_a])
+            area = float(f[idx_area] or 0.0)
             txt = str(f[idx_text] or '')
-            coverage.setdefault(aid, []).append(QgsGeometry(f.geometry()))
+            totals[aid] = totals.get(aid, 0.0) + area
             texts.setdefault(aid, []).append(txt)
             if method == 'Self Overlap':
                 bid = int(f[idx_b])
-                coverage.setdefault(bid, []).append(QgsGeometry(f.geometry()))
+                totals[bid] = totals.get(bid, 0.0) + area
                 texts.setdefault(bid, []).append(txt)
-        for source_id, geometries in coverage.items():
-            merged = QgsGeometry.unaryUnion(geometries)
-            if merged.isNull() or merged.isEmpty():
-                raise RuntimeError("Could not compute unique overlap coverage.")
-            totals[source_id] = self._area_m2(merged, main_layer.crs())
         idx_id = main_layer.fields().indexOf(report_fields['source_id'])
         idx_ov = main_layer.fields().indexOf(report_fields['text'])
         idx_ar = main_layer.fields().indexOf(report_fields['area'])

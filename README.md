@@ -82,8 +82,3 @@ version 3 or any later version. See `LICENSE` for the complete terms.
 - Support: <ruangspasial@gmail.com>
 - Source code: <https://github.com/purwantodwigeo10/overlap-report-qgis>
 - Issue tracker: <https://github.com/purwantodwigeo10/overlap-report-qgis/issues>
-
-
-## Current revision
-
-See [REVISION_NOTES.md](REVISION_NOTES.md) for behavior changes and validation limits. Existing output filenames are refused; choose a new name for each run.

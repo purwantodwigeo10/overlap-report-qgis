@@ -9,13 +9,6 @@ version=26.1.0
 author=Dwi Purwanto (RuangSpasial)
 email=ruangspasial@gmail.com
 changelog=26.1.0
-    Scope QGIS geometry and area enums: GeometryType.PolygonGeometry, Type.MultiPolygon and AreaUnit.AreaSquareMeters (five scanner findings).
-    Use scoped Qt enums, exec(), Qt-compatible QAction imports and explicit Qt5/Qt6 field types.
-    Use bounded License Hub HTTPS requests, manual redirect policy, HTTP/network error checks and an already-finished reply guard.
-    Give explicit inactive/revoked/expired/pending states priority over conflicting success flags.
-    Use union coverage for report area and percentage; retain individual intersection features in the detail layer.
-    Use the current streaming vector-writer creation API.
-    Require new filenames for both report and overlap outputs.
     - Migrated all License Hub and help traffic to verified HTTPS.
     - Added cross-platform Device ID handling while preserving existing Windows IDs.
     - Added CRS-aware square-metre area calculations and cross-CRS pair analysis.
@@ -33,5 +26,3 @@ category=Vector
 icon=icon.png
 hasProcessingProvider=False
 server=False
-
-license=GPL-3.0-or-later
