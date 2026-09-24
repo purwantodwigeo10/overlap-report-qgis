@@ -44,6 +44,10 @@ Area measurement is CRS-aware and converted to square metres. Pair Overlap
 temporarily transforms secondary geometries into the primary layer CRS without
 modifying either source layer.
 
+The analysis workspace displays live progress from 0 to 100 percent, including
+the current processing stage while inputs are copied, indexed, analysed, and
+summarised.
+
 ## Quick functional test
 
 Synthetic GeoJSON files are included in `sample_data`. See
@@ -73,7 +77,7 @@ local license state is stored in the current user's application-data folder.
 
 ## License and support
 
-Copyright (C) 2026 Dwi Purwanto / RuangSpasial.
+Copyright (C) 2026 Dwi Purwanto (Ruang Spasial).
 
 This plugin is free software licensed under the GNU General Public License,
 version 3 or any later version. See `LICENSE` for the complete terms.

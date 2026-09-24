@@ -7,7 +7,7 @@ from qgis.PyQt.QtCore import Qt, QUrl
 from qgis.PyQt.QtWidgets import (
     QApplication, QComboBox, QDialog, QFileDialog, QGridLayout,
     QGroupBox, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QMessageBox, QPushButton, QTextEdit, QVBoxLayout
+    QMessageBox, QProgressBar, QPushButton, QTextEdit, QVBoxLayout
 )
 from qgis.PyQt.QtGui import QPixmap, QDesktopServices
 from qgis.core import (
@@ -160,6 +160,7 @@ class OverlapReportDialog(QDialog):
         super(OverlapReportDialog, self).__init__(parent)
         self.iface = iface
         self.lm = LicenseManager()
+        self._processing = False
         self.setWindowTitle('Overlap Report')
         window_flags = (
             self.windowFlags()
@@ -284,6 +285,18 @@ class OverlapReportDialog(QDialog):
         output_grid.addWidget(self.btn_output, 0, 2)
         layout.addLayout(output_grid)
 
+        progress_row = QHBoxLayout()
+        self.lbl_progress = QLabel('Ready')
+        self.lbl_progress.setMinimumWidth(190)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setFormat('%p%')
+        self.progress_bar.setTextVisible(True)
+        progress_row.addWidget(self.lbl_progress)
+        progress_row.addWidget(self.progress_bar, 1)
+        layout.addLayout(progress_row)
+
         self.log = QTextEdit()
         self.log.setReadOnly(True)
         self.log.setMinimumHeight(180)
@@ -299,6 +312,25 @@ class OverlapReportDialog(QDialog):
         bottom.addWidget(self.btn_run)
         bottom.addWidget(self.btn_cancel)
         main.addLayout(bottom)
+
+        self._analysis_controls = (
+            self.btn_manage,
+            self.btn_help_main,
+            self.cmb_method,
+            self.txt_input1_file,
+            self.btn_input1_file,
+            self.cmb_layer1,
+            self.cmb_target1,
+            self.txt_input2_file,
+            self.btn_input2_file,
+            self.cmb_layer2,
+            self.cmb_target2,
+            self.lst_select_fields,
+            self.btn_select_all,
+            self.btn_unselect_all,
+            self.txt_output,
+            self.btn_output,
+        )
 
     def open_help_page(self):
         try:
@@ -337,6 +369,40 @@ class OverlapReportDialog(QDialog):
 
     def log_msg(self, msg):
         self.log.append(str(msg))
+
+    def _set_progress(self, value, message=None):
+        value = max(0, min(100, int(value)))
+        value_changed = self.progress_bar.value() != value
+        message_changed = (
+            message is not None and self.lbl_progress.text() != message)
+        if value_changed:
+            self.progress_bar.setValue(value)
+        if message is not None:
+            self.lbl_progress.setText(message)
+        if value_changed or message_changed:
+            QApplication.processEvents()
+
+    def _set_progress_fraction(
+            self, start, end, completed, total, message=None):
+        total = max(1, int(total))
+        completed = max(0, min(int(completed), total))
+        value = int(start + ((end - start) * completed / float(total)))
+        self._set_progress(value, message)
+
+    def _set_processing_state(self, active):
+        self._processing = bool(active)
+        for widget in self._analysis_controls:
+            widget.setEnabled(not self._processing)
+        self.btn_run.setEnabled(not self._processing)
+        self.btn_cancel.setEnabled(not self._processing)
+        if not self._processing:
+            self.on_method_changed()
+
+    def closeEvent(self, event):
+        if self._processing:
+            event.ignore()
+            return
+        super(OverlapReportDialog, self).closeEvent(event)
 
     def load_layers(self):
         self.cmb_layer1.clear()
@@ -483,6 +549,8 @@ class OverlapReportDialog(QDialog):
             QMessageBox.warning(self, PRODUCT_NAME, msg)
             return
         using_trial = not self.lm.is_activated_local()
+        self._set_processing_state(True)
+        self._set_progress(0, 'Preparing analysis...')
         try:
             out_main, out_overlap = self._process()
             if using_trial:
@@ -492,6 +560,7 @@ class OverlapReportDialog(QDialog):
                     (self.lm.trial_remaining(), TRIAL_LIMIT))
             self.log_msg('Process completed. Report output: %s' % out_main)
             self.log_msg('Overlap detail output: %s' % out_overlap)
+            self._set_progress(100, 'Analysis completed.')
             QMessageBox.information(
                 self,
                 PRODUCT_NAME,
@@ -501,12 +570,16 @@ class OverlapReportDialog(QDialog):
                  out_overlap))
             self.refresh_license_status()
         except Exception as e:
+            self._set_progress(
+                self.progress_bar.value(), 'Analysis failed.')
             self.log_msg('ERROR: %s\n%s' % (e, traceback.format_exc()))
             QMessageBox.critical(
                 self,
                 PRODUCT_NAME,
                 'Failed to run tool:\n%s' %
                 e)
+        finally:
+            self._set_processing_state(False)
 
     def _field_names_from_checks(self):
         names = []
@@ -517,6 +590,7 @@ class OverlapReportDialog(QDialog):
         return names
 
     def _process(self):
+        self._set_progress(2, 'Validating inputs...')
         method = self.cmb_method.currentText()
         layer1 = self.current_layer1()
         layer2 = self.current_layer2() if method == 'Pair Overlap' else None
@@ -560,10 +634,13 @@ class OverlapReportDialog(QDialog):
         target2 = self.cmb_target2.currentText().strip()
         selected_fields = self._field_names_from_checks()
 
+        self._set_progress(7, 'Preparing output files...')
         self._delete_shapefile(out_main)
         self._delete_shapefile(out_overlap)
 
+        self._set_progress(10, 'Copying primary features...')
         report_fields = self._write_main_output(layer1, out_main)
+        self._set_progress(25, 'Building spatial index...')
         self._write_overlap_output(
             method,
             layer1,
@@ -572,8 +649,10 @@ class OverlapReportDialog(QDialog):
             target1,
             target2,
             selected_fields)
+        self._set_progress(82, 'Building overlap summaries...')
         self._update_main_report(method, out_main, out_overlap, report_fields)
 
+        self._set_progress(97, 'Adding output layers to the map...')
         out_layer = QgsVectorLayer(out_main, os.path.basename(out_main), 'ogr')
         if out_layer.isValid():
             QgsProject.instance().addMapLayer(out_layer)
@@ -581,6 +660,7 @@ class OverlapReportDialog(QDialog):
             out_overlap, os.path.basename(out_overlap), 'ogr')
         if ov_layer.isValid():
             QgsProject.instance().addMapLayer(ov_layer)
+        self._set_progress(100, 'Analysis completed.')
         return out_main, out_overlap
 
     @staticmethod
@@ -668,7 +748,9 @@ class OverlapReportDialog(QDialog):
                 writer.errorMessage())
 
         failed = 0
-        for source_feature in layer1.getFeatures():
+        total_features = max(0, int(layer1.featureCount()))
+        for feature_number, source_feature in enumerate(
+                layer1.getFeatures(), 1):
             output_feature = QgsFeature(fields)
             output_feature.setGeometry(QgsGeometry(source_feature.geometry()))
             output_feature.setAttributes(
@@ -677,7 +759,14 @@ class OverlapReportDialog(QDialog):
             )
             if not writer.addFeature(output_feature):
                 failed += 1
+            self._set_progress_fraction(
+                10,
+                25,
+                feature_number,
+                total_features,
+                'Copying primary features...')
         del writer
+        self._set_progress(25, 'Primary feature copy completed.')
         if failed:
             raise RuntimeError(
                 '%s feature(s) could not be written to the report output.' %
@@ -743,7 +832,14 @@ class OverlapReportDialog(QDialog):
         spatial_index = QgsSpatialIndex()
         secondary = {}
         secondary_order = {}
+        secondary_total = len(secondary_features)
         for order, feature in enumerate(secondary_features):
+            self._set_progress_fraction(
+                25,
+                40,
+                order + 1,
+                secondary_total,
+                'Building spatial index...')
             geometry = self._prepared_geometry(feature.geometry())
             if geometry is None:
                 continue
@@ -756,8 +852,16 @@ class OverlapReportDialog(QDialog):
             secondary[int(feature.id())] = (feature, geometry)
             secondary_order[int(feature.id())] = order
 
+        self._set_progress(40, 'Analysing overlap candidates...')
         failed = 0
+        primary_total = len(primary_features)
         for primary_order, fa in enumerate(primary_features):
+            self._set_progress_fraction(
+                40,
+                82,
+                primary_order + 1,
+                primary_total,
+                'Analysing overlap candidates...')
             ga = self._prepared_geometry(fa.geometry())
             if ga is None:
                 continue
@@ -819,6 +923,7 @@ class OverlapReportDialog(QDialog):
                 if not writer.addFeature(newf):
                     failed += 1
         del writer
+        self._set_progress(82, 'Overlap analysis completed.')
         if failed:
             raise RuntimeError(
                 '%s overlap feature(s) could not be written.' %
@@ -843,7 +948,8 @@ class OverlapReportDialog(QDialog):
         idx_b = overlap_layer.fields().indexOf('SRC_ID_B')
         idx_area = overlap_layer.fields().indexOf('AREA_M2')
         idx_text = overlap_layer.fields().indexOf('OVERLAP')
-        for f in overlap_layer.getFeatures():
+        overlap_total = max(0, int(overlap_layer.featureCount()))
+        for overlap_number, f in enumerate(overlap_layer.getFeatures(), 1):
             aid = int(f[idx_a])
             area = float(f[idx_area] or 0.0)
             txt = str(f[idx_text] or '')
@@ -853,6 +959,13 @@ class OverlapReportDialog(QDialog):
                 bid = int(f[idx_b])
                 totals[bid] = totals.get(bid, 0.0) + area
                 texts.setdefault(bid, []).append(txt)
+            self._set_progress_fraction(
+                82,
+                88,
+                overlap_number,
+                overlap_total,
+                'Building overlap summaries...')
+        self._set_progress(88, 'Updating report attributes...')
         idx_id = main_layer.fields().indexOf(report_fields['source_id'])
         idx_ov = main_layer.fields().indexOf(report_fields['text'])
         idx_ar = main_layer.fields().indexOf(report_fields['area'])
@@ -863,7 +976,8 @@ class OverlapReportDialog(QDialog):
                 'shapefile.')
         prov = main_layer.dataProvider()
         changes = {}
-        for feat in main_layer.getFeatures():
+        main_total = max(0, int(main_layer.featureCount()))
+        for main_number, feat in enumerate(main_layer.getFeatures(), 1):
             geometry = self._prepared_geometry(feat.geometry())
             area_feat = self._area_m2(
                 geometry, main_layer.crs()) if geometry is not None else 0.0
@@ -873,9 +987,16 @@ class OverlapReportDialog(QDialog):
             txt = '; '.join(texts.get(source_id, []))
             changes[feat.id()] = {idx_ov: txt[:254],
                                   idx_ar: total, idx_pc: pct}
+            self._set_progress_fraction(
+                88,
+                96,
+                main_number,
+                main_total,
+                'Updating report attributes...')
         if changes and not prov.changeAttributeValues(changes):
             raise RuntimeError('Failed to update the report attributes.')
         main_layer.updateFields()
+        self._set_progress(96, 'Report attributes updated.')
 
     def _delete_shapefile(self, path):
         base, ext = os.path.splitext(path)

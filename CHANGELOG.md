@@ -13,6 +13,7 @@
 - Counted trial usage only after a successful analysis.
 - Added GPL-3.0-or-later licensing and publication documentation.
 - Added small synthetic GeoJSON files for reproducible functional testing.
+- Added a live 0-100 percent analysis progress bar with stage messages.
 
 ## 0.26.01
 

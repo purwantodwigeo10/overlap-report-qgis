@@ -2,20 +2,20 @@
 name=Overlap Report
 qgisMinimumVersion=3.22
 qgisMaximumVersion=3.99
-description=Detect self-overlaps and intersections between polygon layers and create detailed area and percentage reports.
-about=Overlap Report provides Self Overlap and Pair Overlap analyses in one focused interface. It creates a copy of the primary polygon layer with overlap summaries and a separate polygon layer containing every detected intersection. Areas are reported in square metres, including when input layers use geographic or different coordinate reference systems.
-    The plugin has no third-party Python dependencies and contains no binaries. Two successful analysis runs are available in trial mode. Continued use requires an internet connection and a RUANG SPASIAL License Hub activation. License validation sends the product identifiers, the entered activation code, and a one-way SHA-256 Device ID to aktivasi.ruangspasial.my.id over HTTPS. The original operating-system identifier is not transmitted.
+description=Overlap Report helps identify self-overlaps and intersections between polygon layers quickly and accurately, improving spatial-data validation.
+about=Overlap Report helps identify self-overlaps and intersections between polygon layers quickly and accurately. It provides Self Overlap and Pair Overlap analyses in one focused interface, creates a copy of the primary polygon layer with overlap summaries, and creates a separate polygon layer containing every detected intersection. Areas are reported in square metres, including when input layers use geographic or different coordinate reference systems. The plugin supports QGIS 3.22 through 3.99 within the QGIS 3.x series; QGIS 4 compatibility is not claimed.
 version=26.1.0
-author=Dwi Purwanto (RuangSpasial)
+author=Dwi Purwanto (Ruang Spasial)
 email=ruangspasial@gmail.com
 changelog=26.1.0
-    - Migrated all License Hub and help traffic to verified HTTPS.
-    - Added cross-platform Device ID handling while preserving existing Windows IDs.
-    - Added CRS-aware square-metre area calculations and cross-CRS pair analysis.
-    - Added spatial indexing and corrected self-overlap summaries for both features.
-    - Added GPL-3.0-or-later licensing, documentation, and publication metadata.
-    - Improved output-field safety, local-state writes, and license revocation checks.
-    - Added synthetic GeoJSON sample data for reproducible review testing.
+    - Detects self-overlaps between polygon features within a single layer.
+    - Analyses intersections between primary and secondary polygon layers.
+    - Supports polygon layers with matching or different coordinate reference systems.
+    - Creates a primary report containing overlap summaries, areas in square metres, and percentages.
+    - Creates a separate detail layer containing every overlap geometry and its source feature identifiers.
+    - Allows selected primary-layer attributes to be included in the detailed result.
+    - Uses spatial indexing for efficient analysis and displays live progress from 0 to 100 percent.
+    - Supports polygon layers loaded in QGIS or selected directly from a folder.
 experimental=False
 deprecated=False
 tags=overlap,intersection,topology,data quality,polygon validation
